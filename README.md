@@ -33,7 +33,7 @@ Tokens de provedores são criptografados no servidor com AES-256-GCM. Senhas usa
 
 ## Produção e OAuth
 
-Veja [o guia de configuração e deploy](docs/SETUP.md). Produção usa PostgreSQL: o SQLite local **não** é usado na Vercel. `.env.local`, `.data/` e `.vercel/` não são versionados.
+Veja [o guia de configuração e deploy](docs/SETUP.md). Modelos de CI e deploy estão em `docs/workflows/`, prontos para ativação após autorizar o escopo `workflow` no GitHub. Produção usa PostgreSQL: o SQLite local **não** é usado na Vercel. `.env.local`, `.data/` e `.vercel/` não são versionados.
 
 ## Verificar
 

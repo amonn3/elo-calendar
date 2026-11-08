@@ -31,7 +31,7 @@ Com as variáveis do banco carregadas no ambiente, aplique o esquema:
 npm run db:migrate
 ```
 
-A migração é idempotente. Produção não cria tabelas durante cada request. O workflow de deploy aplica a migração antes de publicar. Usuários locais não são copiados para o banco de produção; crie sua conta no ambiente publicado.
+A migração é idempotente. Produção não cria tabelas durante cada request. O modelo de workflow de deploy aplica a migração antes de publicar quando ativado. Usuários locais não são copiados para o banco de produção; crie sua conta no ambiente publicado.
 
 ## 3. Google Calendar
 
@@ -67,7 +67,7 @@ Importe o repositório privado `amonn3/elo-calendar` na sua conta Vercel, seleci
 
 Antes do primeiro uso, aplique o esquema no banco de produção. As credenciais Google/Microsoft podem ser adicionadas depois; enquanto estiverem ausentes, os respectivos botões de conexão ficam indisponíveis. Cadastro/login precisam do banco configurado, mesmo sem OAuth.
 
-Também existe um workflow manual **Deploy to Vercel** no GitHub Actions. Para usá-lo, configure os secrets do repositório:
+Os modelos de CI e deploy estão em `docs/workflows/`. A credencial GitHub usada nesta implementação tem escopo `repo`, mas não `workflow`, portanto os modelos não estão ativos. Para ativá-los, autorize o escopo `workflow` na sua credencial e mova os arquivos para `.github/workflows/`. Depois configure os secrets do repositório para o workflow manual **Deploy to Vercel**:
 
 - `VERCEL_TOKEN`: token de deploy da sua conta.
 - `VERCEL_ORG_ID`: ID da sua conta/time Vercel.
