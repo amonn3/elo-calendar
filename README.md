@@ -1,37 +1,58 @@
 # elo
 
-Protótipo local de calendário unificado, em português. Nome provisório.
+Calendário unificado para agendas Google e Microsoft. Nome provisório.
 
-## Rodar
+## Rodar localmente
+
+Requer Node.js 22.13+.
 
 ```bash
 npm ci
+cp .env.example .env.local
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# Coloque o valor gerado em TOKEN_ENCRYPTION_KEY dentro de .env.local.
 npm run dev
 ```
 
-Abra http://localhost:5173.
+Abra **http://127.0.0.1:5173**. A primeira tela é o login. Use **Criar conta** para cadastrar seu usuário real; nenhuma conta é criada automaticamente. O banco SQLite local é criado em `.data/elo.sqlite`, fora do Git. Não existe senha padrão nem entrada automática com dados fictícios.
 
-## Disponível
+Cadastro, login e logout funcionam localmente sem serviços externos. Google/Microsoft só ficam disponíveis quando suas credenciais OAuth estiverem configuradas.
 
-- Calendário semanal, diário, mensal e lista da semana.
-- Agendas com cores individuais e filtros de visibilidade.
-- Busca por título, local e nome da agenda.
-- Criar, editar e excluir eventos; escolha da conta de destino.
-- Detecção de sobreposição de horários, inclusive ao salvar.
-- Contas Google/Microsoft de demonstração e perfil com acesso simulado.
-- Persistência no localStorage do navegador.
-- Interface responsiva, navegação por teclado e modais acessíveis.
+## O que funciona
 
-## Limites desta versão
+- Cadastro com e-mail/senha e sessões persistentes no servidor; logout revoga a sessão.
+- Autorização individual por usuário em todas as rotas de agendas e eventos.
+- Conexão OAuth de várias contas Google e Microsoft, com PKCE e proteção contra replay.
+- Listagem das agendas de cada conta, eventos recorrentes expandidos e paginação.
+- Criação, edição e exclusão no calendário de origem escolhido.
+- Atualização das agendas ao navegar, ao salvar e pelo botão Atualizar. Não há sincronização em tempo real por webhooks nesta versão.
+- Calendário semanal, diário, mensal e agenda; busca, conflitos e cores por conta.
+- Tema claro/escuro persistido e interface responsiva.
 
-Este é um protótipo para validação visual. Login e contas são simulados: nenhum token ou senha é solicitado. Os eventos não são enviados ao Google ou Microsoft. Para a versão real será necessário backend com sessões, armazenamento por usuário, OAuth de cada provedor e sincronização com Google Calendar API e Microsoft Graph. O fuso exibido é Fortaleza (UTC−3); a demonstração pressupõe horários desse fuso.
+Tokens de provedores são criptografados no servidor com AES-256-GCM. Senhas usam scrypt com salt individual. O navegador recebe somente um cookie de sessão HttpOnly; não recebe tokens dos provedores. Os eventos são consultados nos provedores e não são guardados no localStorage.
 
-Para reiniciar os dados de demonstração, remova a chave `elo-demo-v1` do localStorage e recarregue a página. Os e-mails iniciais são fictícios.
+## Produção e OAuth
+
+Veja [o guia de configuração e deploy](docs/SETUP.md). Produção usa PostgreSQL: o SQLite local **não** é usado na Vercel. `.env.local`, `.data/` e `.vercel/` não são versionados.
 
 ## Verificar
 
 ```bash
-npx tsc --noEmit
 npm test
+npm run typecheck
 npm run build
 ```
+
+Teste opcional com Chrome instalado e servidor local rodando:
+
+```bash
+npm test -- --browser
+```
+
+O teste de navegador cria um usuário temporário de QA, verifica cadastro, login, agenda vazia, tema e logout, e remove o usuário ao terminar. Screenshots ficam em `outputs/`, fora do Git. Para outro executável Chrome, use a variável `ELO_CHROME_PATH`.
+
+## Limites atuais
+
+O fuso exibido é Fortaleza (GMT−3). Eventos de dia inteiro e eventos que atravessam dias são exibidos, mas a edição deles deve ser feita no provedor. Agendas sem permissão de escrita são somente leitura. Um evento existente permanece na agenda original; para mudar de agenda, recrie-o no destino. Ainda não há envio de e-mail para confirmação cadastral ou recuperação de senha.
+
+Os testes automatizados usam respostas simuladas dos provedores. O consentimento OAuth e a sincronização com contas reais precisam de validação depois que as credenciais externas forem configuradas.
