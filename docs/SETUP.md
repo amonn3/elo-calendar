@@ -63,7 +63,49 @@ Referência: [Fluxo de autorização Microsoft](https://learn.microsoft.com/en-u
 
 ## 5. Vercel
 
-Importe o repositório privado `amonn3/elo-calendar` na sua conta Vercel, selecione Next.js e configure as variáveis acima. Instalação: `npm ci`. Build: `npm run build`.
+O destino deste app é o projeto **elo-calendar**, no escopo **amons-projects-84315a95** (equipe Amon's projects, `team_FktXqk96Xa88M1jKOx78ACyN`). Use a sessão já autenticada da CLI Vercel. O projeto `vamo-radar` é apenas referência e não deve ser modificado nem ter seu ID copiado.
+
+Configure **Next.js**, Node.js **24.x**, instalação `npm ci`, build `npm run build` e diretório de saída automático do Next.js. Este app tem rotas de servidor e não usa a saída estática `dist` do vamo-radar.
+
+### Deploy automático em cada merge na main
+
+Use a integração Git nativa da Vercel:
+
+- Repositório conectado: `https://github.com/amonn3/elo-calendar.git`.
+- Production Branch: `main`.
+- Deployments habilitados; sem Ignored Build Step que pule commits da main.
+- O `vercel.json` declara explicitamente `git.deploymentEnabled.main: true`.
+
+Com o vínculo remoto concluído, cada merge ou push na `main` dispara um deployment de produção. O manifesto sozinho não cria o projeto, não instala o acesso ao repositório na Vercel e não configura a Production Branch remota.
+
+A integração nativa não depende de GitHub Actions, do escopo `workflow` no token do GitHub ou de adicionar um `VERCEL_TOKEN` ao repositório. Não ative ao mesmo tempo um workflow que publique a mesma alteração.
+
+Referências: [integração Git](https://vercel.com/docs/git), [configuração de branches](https://vercel.com/docs/project-configuration/git-configuration).
+
+### Vínculo pela CLI
+
+Verifique primeiro a identidade e os projetos da equipe:
+
+```bash
+vercel whoami
+vercel teams ls
+vercel project inspect elo-calendar --scope amons-projects-84315a95 --json
+```
+
+Se o projeto ainda não existir, crie-o com `vercel project create elo-calendar --scope amons-projects-84315a95`. Depois configure e conecte:
+
+```bash
+vercel project update elo-calendar --scope amons-projects-84315a95 --framework nextjs --node-version 24.x --install-command 'npm ci' --build-command 'npm run build' --auto-detect output-directory --yes
+vercel link --yes --team team_FktXqk96Xa88M1jKOx78ACyN --project elo-calendar
+vercel git connect https://github.com/amonn3/elo-calendar.git --yes --scope amons-projects-84315a95
+vercel project inspect elo-calendar --scope amons-projects-84315a95 --json
+```
+
+Confirme na resposta/configuração remota que `link.productionBranch` é `main`; ajuste a Production Branch no painel se necessário. A CLI grava o vínculo real em `.vercel/project.json`, ignorado pelo Git. Não preencha esse arquivo com o ID de outro projeto.
+
+Após configurar as variáveis e aplicar o esquema, publique a primeira versão e confirme o estado `READY`. Para verificar o gatilho Git, observe o deployment criado por um commit/merge real na `main` e compare seu SHA com o commit publicado.
+
+Se as consultas de identidade falharem por bloqueio de rede do ambiente, o vínculo remoto ainda não está confirmado. Credenciais locais existentes não significam que a tarefa tenha acesso à API da Vercel.
 
 Antes do primeiro uso, aplique o esquema no banco de produção. As credenciais Google/Microsoft podem ser adicionadas depois; enquanto estiverem ausentes, os respectivos botões de conexão ficam indisponíveis. Cadastro/login precisam do banco configurado, mesmo sem OAuth.
 
