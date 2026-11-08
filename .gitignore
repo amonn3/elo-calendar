@@ -43,3 +43,9 @@ yarn-error.log*
 
 # OS metadata
 .DS_Store
+
+# Local database and deployment state
+/.data/
+/.vercel/
+/test-results/
+!.env.example
