@@ -1,5 +1,5 @@
-export type Account = { id: string; name: string; email: string; provider: 'Google' | 'Microsoft'; color: string; visible: boolean };
-export type CalendarEvent = { id: string; title: string; date: string; start: string; end: string; accountId: string; location: string; description: string };
+export type Account = { id: string; name: string; email: string; provider: 'Google' | 'Microsoft'; color: string; visible: boolean; connectionId?: string; calendarId?: string; writable?: boolean };
+export type CalendarEvent = { id: string; title: string; date: string; start: string; end: string; accountId: string; location: string; description: string; allDay?: boolean; editable?: boolean };
 export const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const minutes = (s: string) => Number(s.slice(0,2))*60 + Number(s.slice(3));
 export function overlaps(a: CalendarEvent,b: CalendarEvent) { return a.id !== b.id && a.date===b.date && minutes(a.start)<minutes(b.end) && minutes(b.start)<minutes(a.end); }
