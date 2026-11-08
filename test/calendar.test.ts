@@ -12,6 +12,20 @@ test('enclosing events conflict in both directions',()=>{
  const outer={...event,id:'b',start:'09:00',end:'12:00'};
  assert.equal(overlaps(event,outer),true);assert.equal(overlaps(outer,event),true);
 });
+test('all-day holidays do not conflict with each other or timed meetings',()=>{
+ const holiday={...event,id:'holiday',title:'Proclamação da República',start:'00:00',end:'24:00',allDay:true};
+ const otherHoliday={...holiday,id:'other-holiday',accountId:'two'};
+ assert.equal(overlaps(holiday,otherHoliday),false);
+ assert.equal(overlaps(holiday,event),false);
+ assert.equal(overlaps(event,holiday),false);
+});
+test('all-day events do not take columns away from timed meetings',()=>{
+ const holiday={...event,id:'holiday',start:'00:00',end:'24:00',allDay:true};
+ const positions=eventPositions([holiday,event]);
+ assert.deepEqual(positions.get(event.id),{column:0,columns:1});
+ assert.equal(positions.has(holiday.id),false);
+ assert.equal(eventPositions([holiday]).size,0);
+});
 test('week starts on Monday including Sunday and year boundaries',()=>{
  assert.equal(dateKey(weekStart(new Date(2026,10,8))),'2026-11-02');
  assert.equal(dateKey(weekStart(new Date(2027,0,1))),'2026-12-28');
