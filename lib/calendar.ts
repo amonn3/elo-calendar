@@ -2,13 +2,14 @@ export type Account = { id: string; name: string; email: string; provider: 'Goog
 export type CalendarEvent = { id: string; title: string; date: string; start: string; end: string; accountId: string; location: string; description: string; allDay?: boolean; editable?: boolean };
 export const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const minutes = (s: string) => Number(s.slice(0,2))*60 + Number(s.slice(3));
-export function overlaps(a: CalendarEvent,b: CalendarEvent) { return a.id !== b.id && a.date===b.date && minutes(a.start)<minutes(b.end) && minutes(b.start)<minutes(a.end); }
+// All-day entries (including holidays) provide context without reserving a meeting time.
+export function overlaps(a: CalendarEvent,b: CalendarEvent) { return !a.allDay && !b.allDay && a.id !== b.id && a.date===b.date && minutes(a.start)<minutes(b.end) && minutes(b.start)<minutes(a.end); }
 export function weekStart(d: Date) { const n = new Date(d.getFullYear(),d.getMonth(),d.getDate()); n.setDate(n.getDate() - (n.getDay()+6)%7); return n; }
 export function addDays(d: Date,n: number) { const v=new Date(d); v.setDate(v.getDate()+n); return v; }
 // Pack connected intervals into columns so three or more overlapping events stay inside the day.
 export function eventPositions(events: CalendarEvent[]) {
  const result = new Map<string, { column: number; columns: number }>();
- const sorted = [...events].sort((a,b)=>a.start.localeCompare(b.start)||a.id.localeCompare(b.id));
+ const sorted = events.filter(e=>!e.allDay).sort((a,b)=>a.start.localeCompare(b.start)||a.id.localeCompare(b.id));
  let group: CalendarEvent[] = []; let groupEnd = -1;
  function flush() {
   const ends: number[] = []; const positions: {id:string;column:number}[] = [];
