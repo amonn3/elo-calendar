@@ -63,6 +63,22 @@ Referência: [Fluxo de autorização Microsoft](https://learn.microsoft.com/en-u
 
 ## 5. Vercel
 
+### Ambiente de produção configurado
+
+- URL: https://elo-calendar.vercel.app
+- Dashboard: https://vercel.com/amons-projects-84315a95/elo-calendar
+- Projeto: `elo-calendar` (`prj_whaghFshIkidJuWgQUMjlQigvDrL`).
+- Equipe: Amon's projects (`team_FktXqk96Xa88M1jKOx78ACyN`).
+- Runtime: Next.js com Node.js 24.x.
+- Banco: Neon PostgreSQL `elo-calendar-db`, plano Free (`free_v3`), região `iad1`, conectado ao ambiente Production.
+- Esquema de usuários, sessões e conexões aplicado ao PostgreSQL.
+- `APP_URL`, `DATABASE_URL` e `TOKEN_ENCRYPTION_KEY` cadastradas na Vercel; a chave é um Secret.
+- Repositório `amonn3/elo-calendar` conectado pelo GitHub App da Vercel, com `main` como Production Branch e sem Ignored Build Step.
+
+A primeira publicação chegou a `READY`. Cadastro, login, API protegida, agenda vazia e revogação da sessão foram verificados por HTTP na produção; o usuário temporário de QA foi removido. Credenciais Google/Microsoft ainda precisam ser cadastradas para habilitar as agendas.
+
+O GitHub App da Vercel precisa manter acesso ao repositório privado. Se o vínculo deixar de encontrar o repositório, confira a autorização em https://github.com/apps/vercel/installations/new.
+
 O destino deste app é o projeto **elo-calendar**, no escopo **amons-projects-84315a95** (equipe Amon's projects, `team_FktXqk96Xa88M1jKOx78ACyN`). Use a sessão já autenticada da CLI Vercel. O projeto `vamo-radar` é apenas referência e não deve ser modificado nem ter seu ID copiado.
 
 Configure **Next.js**, Node.js **24.x**, instalação `npm ci`, build `npm run build` e diretório de saída automático do Next.js. Este app tem rotas de servidor e não usa a saída estática `dist` do vamo-radar.
@@ -96,7 +112,7 @@ Se o projeto ainda não existir, crie-o com `vercel project create elo-calendar 
 
 ```bash
 vercel project update elo-calendar --scope amons-projects-84315a95 --framework nextjs --node-version 24.x --install-command 'npm ci' --build-command 'npm run build' --auto-detect output-directory --yes
-vercel link --yes --team team_FktXqk96Xa88M1jKOx78ACyN --project elo-calendar
+vercel link --yes --scope amons-projects-84315a95 --project elo-calendar
 vercel git connect https://github.com/amonn3/elo-calendar.git --yes --scope amons-projects-84315a95
 vercel project inspect elo-calendar --scope amons-projects-84315a95 --json
 ```
