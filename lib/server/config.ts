@@ -1,5 +1,6 @@
 export class AppError extends Error {
-  constructor(message: string, public status = 400) { super(message); }
+  status: number;
+  constructor(message: string, status = 400) { super(message); this.status = status; }
 }
 export function appOrigin() {
   const raw = process.env.APP_URL || (process.env.NODE_ENV === 'production' ? '' : 'http://127.0.0.1:5173');
