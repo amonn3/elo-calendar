@@ -2,6 +2,10 @@
 
 Calendário unificado para agendas Google e Microsoft. Nome provisório.
 
+**Produção:** https://elo-calendar.vercel.app
+
+Hospedado na Vercel com PostgreSQL Neon. A integração Git publica atualizações da `main` automaticamente. Cadastro/login estão disponíveis; a conexão das agendas depende das credenciais OAuth de cada provedor.
+
 ## Rodar localmente
 
 Requer Node.js 22.13+.
