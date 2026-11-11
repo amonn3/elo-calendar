@@ -4,7 +4,7 @@ import { ArrowUpRight, Bell, CalendarDays, Check, CheckCheck, ChevronDown, Chevr
 import { Account, CalendarEvent, addDays, dateKey, eventPositions, minutes, overlaps, weekStart } from '../lib/calendar';
 import { ThemeSwitch } from './theme-switch';
 type ConnectedAccount={id:string;name:string;email:string;provider:'Google'|'Microsoft';color:string};
-const GRID_START_HOUR=7;const GRID_HOURS=12;const GRID_END_MINUTE=(GRID_START_HOUR+GRID_HOURS)*60;const PX_PER_MINUTE=1.12;
+const GRID_START_HOUR=0;const GRID_HOURS=24;const GRID_END_MINUTE=(GRID_START_HOUR+GRID_HOURS)*60;const PX_PER_MINUTE=1.12;
 const gridHours=Array.from({length:GRID_HOURS},(_,i)=>GRID_START_HOUR+i);
 const weekdays=['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
 const formatDate=(d:Date,options:Intl.DateTimeFormatOptions)=>d.toLocaleDateString('pt-BR',options);
