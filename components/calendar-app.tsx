@@ -1,7 +1,7 @@
 'use client';
 import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ArrowUpRight, Bell, CalendarDays, Check, CheckCheck, ChevronDown, ChevronLeft, ChevronRight, CircleHelp, Clock3, Globe2, Link2, LogOut, MapPin, Plus, Search, ShieldCheck, Sparkles, TriangleAlert, Video, X, Trash2, Menu, LoaderCircle, RefreshCw, PanelRightClose } from 'lucide-react';
-import { Account, CalendarEvent, addDays, dateKey, eventPositions, minutes, overlaps, weekStart, zonedClock } from '../lib/calendar';
+import { Account, CalendarEvent, addDays, dateKey, calendarToday, eventPositions, minutes, overlaps, weekStart, zonedClock } from '../lib/calendar';
 import { ThemeSwitch } from './theme-switch';
 type ConnectedAccount={id:string;name:string;email:string;provider:'Google'|'Microsoft';color:string};
 const GRID_START_HOUR=0;const GRID_HOURS=24;const GRID_END_MINUTE=(GRID_START_HOUR+GRID_HOURS)*60;const PX_PER_MINUTE=1.12;const SCROLL_START_HOUR=7;
@@ -17,9 +17,9 @@ const emptyEvent=(d:Date,accountId='personal',start='09:00'):CalendarEvent=>({id
 function Brand(){return <div className="brand"><span className="brand-mark"><Link2 size={25}/></span><span>elo<span className="brand-period">.</span></span></div>}
 function Provider({provider}:{provider:string}) {return provider==='Google'?<span className="google-g">G</span>:<span className="ms-logo"><i/><i/><i/><i/></span>}
 export default function CalendarApp({user}:{user:{id:string;name:string;email:string}}){
- const [today]=useState(()=>new Date()); const nowMinute=useSyncExternalStore(subscribeToClock,currentMinute,serverMinute); const clock=nowMinute===null?null:zonedClock(new Date(nowMinute*60_000)); const [anchor,setAnchor]=useState(()=>new Date()); const [selected,setSelected]=useState(()=>new Date());
+ const [today]=useState(calendarToday); const nowMinute=useSyncExternalStore(subscribeToClock,currentMinute,serverMinute); const clock=nowMinute===null?null:zonedClock(new Date(nowMinute*60_000)); const [anchor,setAnchor]=useState(calendarToday); const [selected,setSelected]=useState(calendarToday);
  const [accounts,setAccounts]=useState<Account[]>([]); const [events,setEvents]=useState<CalendarEvent[]>([]); const [ready,setReady]=useState(false);
- const [view,setView]=useState('Semana'); const [query,setQuery]=useState(''); const [modal,setModal]=useState<'event'|'accounts'|'profile'|'help'|null>(null); const [draft,setDraft]=useState<CalendarEvent>(()=>emptyEvent(new Date()));
+ const [view,setView]=useState('Semana'); const [query,setQuery]=useState(''); const [modal,setModal]=useState<'event'|'accounts'|'profile'|'help'|null>(null); const [draft,setDraft]=useState<CalendarEvent>(()=>emptyEvent(calendarToday()));
  const [toast,setToast]=useState(''); const [error,setError]=useState(''); const [showConflicts,setShowConflicts]=useState(false); const [sideOpen,setSideOpen]=useState(false); const [details,setDetails]=useState(true); const [loading,setLoading]=useState(true);const [saving,setSaving]=useState(false);const [loadError,setLoadError]=useState('');const [syncErrors,setSyncErrors]=useState<string[]>([]);const [refreshVersion,setRefreshVersion]=useState(0);
  const [connections,setConnections]=useState<ConnectedAccount[]>([]);const [providers,setProviders]=useState({google:false,microsoft:false}); const modalRef=useRef<HTMLDivElement>(null); const scrollRef=useRef<HTMLDivElement>(null);
  async function api<T>(url:string,init:RequestInit={}):Promise<T>{
