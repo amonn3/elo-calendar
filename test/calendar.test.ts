@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { eventPositions, overlaps, weekStart, addDays, dateKey } from '../lib/calendar.ts';
+import { eventPositions, overlaps, weekStart, addDays, dateKey, zonedClock } from '../lib/calendar.ts';
 const event={id:'a',title:'A',date:'2026-11-07',start:'10:00',end:'11:00',accountId:'one',description:'',location:''};
 test('conflicts are detected across accounts, but adjacent events do not conflict',()=>{
  assert.equal(overlaps(event,{...event,id:'b',accountId:'two',start:'10:30',end:'11:15'}),true);
@@ -38,4 +38,12 @@ test('three overlaps use three columns and subsequent events reclaim the full wi
  assert.deepEqual(positions.get('a'),{column:0,columns:3});
  assert.deepEqual(positions.get('c'),{column:2,columns:3});
  assert.deepEqual(positions.get('d'),{column:0,columns:1});
+});
+
+test('the current time is read in the calendar zone regardless of the runtime zone',()=>{
+ // 14:05 UTC is 11:05 in Brazil (GMT−3): the now indicator must land on 11:05, not on the server's UTC hour.
+ assert.deepEqual(zonedClock(new Date('2026-11-12T14:05:00Z')),{date:'2026-11-12',minutes:11*60+5});
+ // Late evening in Brazil is already the next day in UTC.
+ assert.deepEqual(zonedClock(new Date('2026-11-13T01:30:00Z')),{date:'2026-11-12',minutes:22*60+30});
+ assert.deepEqual(zonedClock(new Date('2026-11-12T03:00:00Z')),{date:'2026-11-12',minutes:0});
 });
