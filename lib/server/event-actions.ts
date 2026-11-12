@@ -1,4 +1,4 @@
-import type { CalendarEvent } from '../calendar.ts';
+import { CALENDAR_TIME_ZONE, type CalendarEvent } from '../calendar.ts';
 import { requireSession } from './auth.ts';
 import { AppError, assertSameOrigin, body, failure, json } from './config.ts';
 import { accessToken, ownedConnection } from './connections.ts';
@@ -25,7 +25,7 @@ export async function eventAction(request:Request){
   const url=request.method==='POST'?base:`${base}/${encodeURIComponent(remoteId)}`;
   if(request.method==='DELETE'){await providerFetch(connection.provider,token,url,{method:'DELETE'});return json({ok:true});}
   const e=validateEvent(data);const start=`${e.date}T${e.start}:00`;const end=`${e.date}T${e.end}:00`;
-  const payload=connection.provider==='google'?{summary:e.title,description:e.description,location:e.location,start:{dateTime:`${start}-03:00`,timeZone:'America/Fortaleza'},end:{dateTime:`${end}-03:00`,timeZone:'America/Fortaleza'}}:{subject:e.title,body:{contentType:'text',content:e.description},location:{displayName:e.location},start:{dateTime:new Date(`${start}-03:00`).toISOString().slice(0,19),timeZone:'UTC'},end:{dateTime:new Date(`${end}-03:00`).toISOString().slice(0,19),timeZone:'UTC'}};
+  const payload=connection.provider==='google'?{summary:e.title,description:e.description,location:e.location,start:{dateTime:`${start}-03:00`,timeZone:CALENDAR_TIME_ZONE},end:{dateTime:`${end}-03:00`,timeZone:CALENDAR_TIME_ZONE}}:{subject:e.title,body:{contentType:'text',content:e.description},location:{displayName:e.location},start:{dateTime:new Date(`${start}-03:00`).toISOString().slice(0,19),timeZone:'UTC'},end:{dateTime:new Date(`${end}-03:00`).toISOString().slice(0,19),timeZone:'UTC'}};
   await providerFetch(connection.provider,token,url,{method:request.method==='POST'?'POST':'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
   return json({ok:true},request.method==='POST'?201:200);
  }catch(error){return failure(error);}

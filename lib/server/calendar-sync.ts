@@ -1,4 +1,4 @@
-import type { Account, CalendarEvent } from '../calendar.ts';
+import { CALENDAR_TIME_ZONE, type Account, type CalendarEvent } from '../calendar.ts';
 import { AppError } from './config.ts';
 import { accessToken, type Connection } from './connections.ts';
 import { providerFetch } from './providers.ts';
@@ -28,7 +28,7 @@ export async function listCalendars(connection: Connection, token: string): Prom
 export type ProviderEvent = { id:string; title:string; start:string; end:string; location?:string; description?:string; allDay?:boolean; editable:boolean };
 const localParts=(iso:string)=>{
  const d=new Date(iso);if(Number.isNaN(d.getTime()))return null;
- const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Fortaleza',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d);
+ const parts=new Intl.DateTimeFormat('en-CA',{timeZone:CALENDAR_TIME_ZONE,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d);
  const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));return {date:`${p.year}-${p.month}-${p.day}`,time:`${p.hour}:${p.minute}`};
 };
 export function normalizeEvent(raw:ProviderEvent,account:Account,from:string,to:string):CalendarEvent[]{
