@@ -2,6 +2,12 @@ export type Account = { id: string; name: string; email: string; provider: 'Goog
 export type CalendarEvent = { id: string; title: string; date: string; start: string; end: string; accountId: string; location: string; description: string; allDay?: boolean; editable?: boolean };
 export const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const minutes = (s: string) => Number(s.slice(0,2))*60 + Number(s.slice(3));
+// The grid is laid out in this fixed zone (labelled GMT−3), so "now" must be read in it too, not in the server's or browser's zone.
+export const CALENDAR_TIME_ZONE = 'America/Fortaleza';
+export function zonedClock(at: Date, timeZone = CALENDAR_TIME_ZONE) {
+ const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at).map(v=>[v.type,v.value]));
+ return { date: `${p.year}-${p.month}-${p.day}`, minutes: Number(p.hour)*60 + Number(p.minute) };
+}
 // All-day entries (including holidays) provide context without reserving a meeting time.
 export function overlaps(a: CalendarEvent,b: CalendarEvent) { return !a.allDay && !b.allDay && a.id !== b.id && a.date===b.date && minutes(a.start)<minutes(b.end) && minutes(b.start)<minutes(a.end); }
 export function weekStart(d: Date) { const n = new Date(d.getFullYear(),d.getMonth(),d.getDate()); n.setDate(n.getDate() - (n.getDay()+6)%7); return n; }
