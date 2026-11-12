@@ -8,6 +8,10 @@ export function zonedClock(at: Date, timeZone = CALENDAR_TIME_ZONE) {
  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at).map(v=>[v.type,v.value]));
  return { date: `${p.year}-${p.month}-${p.day}`, minutes: Number(p.hour)*60 + Number(p.minute) };
 }
+// Local-midnight Date for a YYYY-MM-DD key, so dateKey() and the grid helpers round-trip it in any runtime zone.
+export function dateFromKey(key: string) { const [y,m,d]=key.split('-').map(Number); return new Date(y,m-1,d); }
+// "Today" as the calendar zone sees it: on a UTC server, 21:00–23:59 in GMT−3 is already tomorrow.
+export const calendarToday = (at = new Date()) => dateFromKey(zonedClock(at).date);
 // All-day entries (including holidays) provide context without reserving a meeting time.
 export function overlaps(a: CalendarEvent,b: CalendarEvent) { return !a.allDay && !b.allDay && a.id !== b.id && a.date===b.date && minutes(a.start)<minutes(b.end) && minutes(b.start)<minutes(a.end); }
 export function weekStart(d: Date) { const n = new Date(d.getFullYear(),d.getMonth(),d.getDate()); n.setDate(n.getDate() - (n.getDay()+6)%7); return n; }

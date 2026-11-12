@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { eventPositions, overlaps, weekStart, addDays, dateKey, zonedClock } from '../lib/calendar.ts';
+import { eventPositions, overlaps, weekStart, addDays, dateKey, zonedClock, dateFromKey, calendarToday } from '../lib/calendar.ts';
 const event={id:'a',title:'A',date:'2026-11-07',start:'10:00',end:'11:00',accountId:'one',description:'',location:''};
 test('conflicts are detected across accounts, but adjacent events do not conflict',()=>{
  assert.equal(overlaps(event,{...event,id:'b',accountId:'two',start:'10:30',end:'11:15'}),true);
@@ -46,4 +46,12 @@ test('the current time is read in the calendar zone regardless of the runtime zo
  // Late evening in Brazil is already the next day in UTC.
  assert.deepEqual(zonedClock(new Date('2026-11-13T01:30:00Z')),{date:'2026-11-12',minutes:22*60+30});
  assert.deepEqual(zonedClock(new Date('2026-11-12T03:00:00Z')),{date:'2026-11-12',minutes:0});
+});
+
+test('today is the calendar-zone date, even when the runtime zone is already on the next day',()=>{
+ assert.equal(dateKey(dateFromKey('2026-11-12')),'2026-11-12');
+ assert.equal(dateKey(dateFromKey('2027-01-01')),'2027-01-01');
+ // 22:30 on the 12th in Brazil is 01:30 on the 13th in UTC.
+ assert.equal(dateKey(calendarToday(new Date('2026-11-13T01:30:00Z'))),'2026-11-12');
+ assert.equal(dateKey(calendarToday(new Date('2026-11-13T03:00:00Z'))),'2026-11-13');
 });
