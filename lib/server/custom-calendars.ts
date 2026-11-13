@@ -9,7 +9,7 @@ export const customAccountId = (calendarId: string) => `${CUSTOM_PREFIX}${calend
 type CalendarRow = { id: string; user_id: string; name: string; color: string; created_at: number };
 type EventRow = { id: string; calendar_id: string; title: string; event_date: string; start_time: string; end_time: string; location: string; description: string };
 type Query = typeof query;
-const toAccount = (c: CalendarRow): Account => ({ id: customAccountId(c.id), calendarId: c.id, name: c.name, email: 'Importada de relatório', provider: 'Importada', color: c.color, visible: true, writable: true });
+const toAccount = (c: CalendarRow): Account => ({ id: customAccountId(c.id), calendarId: c.id, name: c.name, email: 'Agenda importada', provider: 'Importada', color: c.color, visible: true, writable: true });
 const toEvent = (e: EventRow): CalendarEvent => ({ id: `${customAccountId(e.calendar_id)}::${e.id}`, accountId: customAccountId(e.calendar_id), title: e.title, date: e.event_date, start: e.start_time, end: e.end_time, location: e.location, description: e.description, editable: true });
 export function validateName(value: unknown) {
   const name = typeof value === 'string' ? value.replace(/\s+/g, ' ').trim() : '';
