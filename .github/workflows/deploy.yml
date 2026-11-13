@@ -1,5 +1,7 @@
 name: Deploy to Vercel
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -17,7 +19,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          node-version: '24'
           cache: npm
       - name: Require Vercel configuration
         run: |
@@ -28,8 +30,10 @@ jobs:
       - run: npm test
       - name: Download production environment
         run: npx --yes vercel@65.2.0 pull --yes --environment=production --token="$VERCEL_TOKEN"
-      - name: Validate production configuration
-        run: NODE_ENV=production node --env-file=.vercel/.env.production.local --experimental-strip-types scripts/check-config.ts
+      # Secret-type variables (TOKEN_ENCRYPTION_KEY, OAuth credentials) are never pulled, so only the values the migration needs are checked here.
+      - name: Require database configuration
+        run: |
+          grep -Eq '^DATABASE_URL="?postgres(ql)?://' .vercel/.env.production.local || { echo 'DATABASE_URL is missing from the production environment.'; exit 1; }
       - name: Apply database schema
         run: NODE_ENV=production node --env-file=.vercel/.env.production.local --experimental-strip-types scripts/migrate.ts
       - name: Build production

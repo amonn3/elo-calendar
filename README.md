@@ -102,7 +102,7 @@ The optional browser test creates a temporary QA user, checks registration, logi
 
 ## Deploy to Vercel
 
-The production app is hosted at **https://elo-calendar.vercel.app**, backed by Neon PostgreSQL. Vercel's native Git integration deploys updates from `main`.
+The production app is hosted at **https://elo-calendar.vercel.app**, backed by Neon PostgreSQL. The [deploy workflow](.github/workflows/deploy.yml) publishes every push to `main`, applying the database schema before each deployment.
 
 For your own deployment, configure a PostgreSQL database, `APP_URL`, and `TOKEN_ENCRYPTION_KEY`. Add Google and Microsoft OAuth credentials to enable those connections. The full variable list and callback URLs are in the [setup guide](docs/SETUP.md); [`.env.example`](.env.example) documents the local configuration.
 
@@ -114,7 +114,7 @@ npm run db:migrate
 
 Production requires PostgreSQL; the development SQLite file is not used on Vercel. `.env.local`, `.data/`, and `.vercel/` are excluded from version control.
 
-The [CI template](docs/workflows/ci.yml) and [deployment template](docs/workflows/deploy.yml) are reference files under `docs/workflows/`, not active GitHub Actions workflows. The current production deployment uses the native Vercel integration.
+The [CI template](docs/workflows/ci.yml) is a reference file, not an active workflow. Production deploys run through GitHub Actions; Vercel's Git integration only builds pull request previews.
 
 ## Known limitations
 
@@ -137,7 +137,7 @@ The setup guide is currently in Portuguese.
 | [Setup and deployment](docs/SETUP.md) | Local accounts, PostgreSQL, OAuth, and Vercel configuration |
 | [Environment example](.env.example) | Local configuration and provider variables |
 | [CI template](docs/workflows/ci.yml) | Reference validation workflow |
-| [Deployment template](docs/workflows/deploy.yml) | Reference Vercel deployment workflow |
+| [Deploy workflow](.github/workflows/deploy.yml) | Migrates the database and deploys `main` to Vercel |
 | [Privacy policy](https://elo-calendar.vercel.app/privacidade) | How the app handles account and calendar data |
 
 ## Contributing

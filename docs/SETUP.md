@@ -85,16 +85,10 @@ Configure **Next.js**, Node.js **24.x**, instalação `npm ci`, build `npm run b
 
 ### Deploy automático em cada merge na main
 
-Use a integração Git nativa da Vercel:
+A produção é publicada pelo workflow **Deploy to Vercel** (`.github/workflows/deploy.yml`), disparado em cada push na `main` (e manualmente, se preciso). Ele roda os testes, baixa as variáveis de produção, **aplica o esquema do banco** e só então compila e publica. Assim nenhuma versão chega à produção antes das tabelas que ela usa.
 
-- Repositório conectado: `https://github.com/amonn3/elo-calendar.git`.
-- Production Branch: `main`.
-- Deployments habilitados; sem Ignored Build Step que pule commits da main.
-- O `vercel.json` declara explicitamente `git.deploymentEnabled.main: true`.
-
-Com o vínculo remoto concluído, cada merge ou push na `main` dispara um deployment de produção. O manifesto sozinho não cria o projeto, não instala o acesso ao repositório na Vercel e não configura a Production Branch remota.
-
-A integração nativa não depende de GitHub Actions, do escopo `workflow` no token do GitHub ou de adicionar um `VERCEL_TOKEN` ao repositório. Não ative ao mesmo tempo um workflow que publique a mesma alteração.
+- O `vercel.json` declara `git.deploymentEnabled.main: false`: a integração Git da Vercel continua gerando previews dos PRs, mas não publica a `main`, para não haver dois deploys concorrentes.
+- Variáveis do tipo Secret na Vercel (`TOKEN_ENCRYPTION_KEY`, credenciais OAuth) não são baixadas pelo `vercel pull`; o workflow só confere o `DATABASE_URL` antes da migração. Em runtime a Vercel injeta todas normalmente.
 
 Referências: [integração Git](https://vercel.com/docs/git), [configuração de branches](https://vercel.com/docs/project-configuration/git-configuration).
 
@@ -125,13 +119,13 @@ Se as consultas de identidade falharem por bloqueio de rede do ambiente, o vínc
 
 Antes do primeiro uso, aplique o esquema no banco de produção. As credenciais Google/Microsoft podem ser adicionadas depois; enquanto estiverem ausentes, os respectivos botões de conexão ficam indisponíveis. Cadastro/login precisam do banco configurado, mesmo sem OAuth.
 
-Os modelos de CI e deploy estão em `docs/workflows/`. A credencial GitHub usada nesta implementação tem escopo `repo`, mas não `workflow`, portanto os modelos não estão ativos. Para ativá-los, autorize o escopo `workflow` na sua credencial e mova os arquivos para `.github/workflows/`. Depois configure os secrets do repositório para o workflow manual **Deploy to Vercel**:
+O modelo de CI continua em `docs/workflows/ci.yml`. O workflow de deploy está ativo e precisa destes secrets no repositório:
 
 - `VERCEL_TOKEN`: token de deploy da sua conta.
 - `VERCEL_ORG_ID`: ID da sua conta/time Vercel.
 - `VERCEL_PROJECT_ID`: ID do projeto importado.
 
-O workflow baixa as variáveis de produção da Vercel, valida a configuração, aplica o esquema, compila e publica. Não há secrets incluídos no código. Use somente um mecanismo de deploy por alteração para evitar publicações duplicadas.
+O workflow baixa as variáveis de produção da Vercel, confere o banco, aplica o esquema, compila e publica. Não há secrets incluídos no código. Sem esses secrets o workflow falha logo no início e nada é publicado.
 
 Depois de publicar, teste: cadastrar → sair → entrar → conectar suas três contas → confirmar agendas e horários → criar um evento em uma conta → conferir no calendário original.
 
