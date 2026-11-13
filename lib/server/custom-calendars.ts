@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto';
-import { calendarToday, type Account, type CalendarEvent } from '../calendar.ts';
+import { calendarToday, CUSTOM_COLORS, type Account, type CalendarEvent } from '../calendar.ts';
 import { parseReport, type ReportEvent } from '../report-parser.ts';
 import { AppError } from './config.ts';
 import { query, transaction } from './database.ts';
 // Custom calendars live only in elo. Their account ids carry this prefix so event actions never confuse them with a provider connection (connection ids are UUIDs).
 export const CUSTOM_PREFIX = 'custom:';
-export const CUSTOM_COLORS = ['rose', 'teal', 'slate', 'olive'] as const;
 export const customAccountId = (calendarId: string) => `${CUSTOM_PREFIX}${calendarId}`;
 type CalendarRow = { id: string; user_id: string; name: string; color: string; created_at: number };
 type EventRow = { id: string; calendar_id: string; title: string; event_date: string; start_time: string; end_time: string; location: string; description: string };

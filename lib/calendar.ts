@@ -4,6 +4,8 @@ export const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1)
 export const minutes = (s: string) => Number(s.slice(0,2))*60 + Number(s.slice(3));
 // The grid is laid out in this fixed zone (labelled GMT−3), so "now" must be read in it too, not in the server's or browser's zone.
 export const CALENDAR_TIME_ZONE = 'America/Fortaleza';
+// Custom calendars get tones that connected accounts (purple, blue, orange, green) never use.
+export const CUSTOM_COLORS = ['rose', 'teal', 'slate', 'olive'] as const;
 export function zonedClock(at: Date, timeZone = CALENDAR_TIME_ZONE) {
  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at).map(v=>[v.type,v.value]));
  return { date: `${p.year}-${p.month}-${p.day}`, minutes: Number(p.hour)*60 + Number(p.minute) };
