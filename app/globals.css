@@ -131,3 +131,23 @@ html{font-size:16px}
 .breadcrumb>span,.breadcrumb>svg{display:none}
 .all-day-row>span{font-size:.4375rem;letter-spacing:-.2px}
 }
+.imported-logo{color:var(--secondary)}
+.add-options{display:flex;flex-direction:column;gap:10px}
+.add-options button{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid var(--border);border-radius:9px;padding:13px 12px;background:var(--surface)}
+.add-options button:hover{background:var(--hover)}
+.add-options button>span:nth-child(2){flex:1;min-width:0}
+.add-options strong{display:block;font-size:0.875rem;font-weight:600}
+.add-options small{display:block;font-size:0.8125rem;color:var(--muted);margin-top:4px;line-height:1.5}
+.color-field{display:flex;align-items:center;gap:9px;font-size:0.875rem;font-weight:500;color:#877793;margin-bottom:17px}
+.color-field>span{margin-right:4px}
+.color-swatch{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:var(--tone);color:#fff;box-shadow:0 0 0 2px var(--surface),0 0 0 3px transparent}
+.color-swatch.chosen{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--tone)}
+.modal textarea.report-input{min-height:170px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:0.8125rem;line-height:1.55}
+.file-picker{position:relative;display:flex!important;flex-direction:row!important;align-items:center;gap:8px;border:1px dashed var(--border);border-radius:7px;padding:11px 12px;font-size:0.8125rem!important;color:var(--secondary)!important;cursor:pointer;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file-picker:hover{background:var(--hover)}
+.file-picker input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.file-picker:focus-within{outline:2px solid #9879e2;outline-offset:2px}
+.import-preview{display:flex;flex-direction:column;gap:4px;border:1px solid var(--border);border-radius:7px;background:var(--surface-muted);padding:12px;margin:15px 0;font-size:0.8125rem;color:var(--secondary)}
+.import-preview strong{color:var(--ink);font-size:0.875rem}
+.import-preview small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+[data-theme="dark"] .add-options button,[data-theme="dark"] .file-picker{border-color:var(--border)}
