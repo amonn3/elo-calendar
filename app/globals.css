@@ -151,3 +151,7 @@ html{font-size:16px}
 .import-preview strong{color:var(--ink);font-size:0.875rem}
 .import-preview small{color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 [data-theme="dark"] .add-options button,[data-theme="dark"] .file-picker{border-color:var(--border)}
+.account-row{display:flex;align-items:center;gap:4px}
+.account-row .account-toggle{flex:1;min-width:0}
+.account-manage{display:grid;place-items:center;width:24px;height:24px;border-radius:6px;color:var(--muted);margin-bottom:6px;flex-shrink:0}
+.account-manage:hover,.account-manage:focus-visible{background:var(--hover);color:var(--ink)}
