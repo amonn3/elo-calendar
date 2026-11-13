@@ -4,6 +4,7 @@ import { AppError, assertSameOrigin, body, failure, json } from './config.ts';
 import { accessToken, ownedConnection } from './connections.ts';
 import { listCalendars } from './calendar-sync.ts';
 import { providerFetch } from './providers.ts';
+import { CUSTOM_PREFIX, deleteCustomEvent, saveCustomEvent } from './custom-calendars.ts';
 export function validateEvent(data:Record<string,unknown>){
  const text=(key:string,max:number)=>{const v=data[key];if(typeof v!=='string'||v.length>max)throw new AppError('Dados do evento inválidos.');return v;};
  const event:CalendarEvent={id:typeof data.id==='string'?data.id:'',accountId:text('accountId',4096),title:text('title',150).trim(),date:text('date',10),start:text('start',5),end:text('end',5),description:text('description',8000),location:text('location',2000)};
@@ -14,7 +15,16 @@ export function validateEvent(data:Record<string,unknown>){
 export async function eventAction(request:Request){
  try{
   assertSameOrigin(request);const {user}=await requireSession(request);const data=await body(request);
-  const accountId=typeof data.accountId==='string'?data.accountId:'';const connectionId=accountId.split(':')[0];
+  const accountId=typeof data.accountId==='string'?data.accountId:'';
+  // Custom calendars are stored in elo itself: no provider round trip.
+  if(accountId.startsWith(CUSTOM_PREFIX)){
+   const calendarId=accountId.slice(CUSTOM_PREFIX.length);const id=typeof data.id==='string'?data.id:'';
+   if(request.method==='DELETE'){await deleteCustomEvent(user.id,calendarId,id);return json({ok:true});}
+   if(request.method==='PATCH'&&!id)throw new AppError('Evento inválido.');
+   await saveCustomEvent(user.id,calendarId,{...validateEvent(data),id:request.method==='POST'?'':id});
+   return json({ok:true},request.method==='POST'?201:200);
+  }
+  const connectionId=accountId.split(':')[0];
   const connection=await ownedConnection(user.id,connectionId);const token=await accessToken(connection);
   const account=(await listCalendars(connection,token)).find(a=>a.id===accountId);
   if(!account||!account.writable)throw new AppError('Esta agenda não permite alterações.',403);

@@ -1,9 +1,11 @@
-export type Account = { id: string; name: string; email: string; provider: 'Google' | 'Microsoft'; color: string; visible: boolean; connectionId?: string; calendarId?: string; writable?: boolean };
+export type Account = { id: string; name: string; email: string; provider: 'Google' | 'Microsoft' | 'Importada'; color: string; visible: boolean; connectionId?: string; calendarId?: string; writable?: boolean };
 export type CalendarEvent = { id: string; title: string; date: string; start: string; end: string; accountId: string; location: string; description: string; allDay?: boolean; editable?: boolean };
 export const dateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 export const minutes = (s: string) => Number(s.slice(0,2))*60 + Number(s.slice(3));
 // The grid is laid out in this fixed zone (labelled GMT−3), so "now" must be read in it too, not in the server's or browser's zone.
 export const CALENDAR_TIME_ZONE = 'America/Fortaleza';
+// Custom calendars get tones that connected accounts (purple, blue, orange, green) never use.
+export const CUSTOM_COLORS = ['rose', 'teal', 'slate', 'olive'] as const;
 export function zonedClock(at: Date, timeZone = CALENDAR_TIME_ZONE) {
  const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(at).map(v=>[v.type,v.value]));
  return { date: `${p.year}-${p.month}-${p.day}`, minutes: Number(p.hour)*60 + Number(p.minute) };

@@ -22,10 +22,10 @@ export function failure(error: unknown) {
   console.error('elo_request_failed', error instanceof Error ? error.name : 'UnknownError');
   return json({ error: 'Não foi possível concluir. Tente novamente em instantes.' }, 500);
 }
-export async function body(request: Request): Promise<Record<string, unknown>> {
+export async function body(request: Request, limit = 16_384): Promise<Record<string, unknown>> {
   if (!request.headers.get('content-type')?.includes('application/json')) throw new AppError('Envie os dados como JSON.', 415);
   const text = await request.text();
-  if (text.length > 16_384) throw new AppError('Solicitação muito grande.', 413);
+  if (text.length > limit) throw new AppError('Solicitação muito grande.', 413);
   try { const value = JSON.parse(text); if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(); return value; }
   catch { throw new AppError('Dados inválidos.'); }
 }

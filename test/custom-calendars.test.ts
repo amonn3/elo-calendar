@@ -1,0 +1,87 @@
+import { test, after } from 'node:test';
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+const directory = mkdtempSync(join(tmpdir(), 'elo-custom-'));
+process.env.DATABASE_PATH = join(directory, 'test.sqlite');
+const { query } = await import('../lib/server/database.ts');
+const custom = await import('../lib/server/custom-calendars.ts');
+after(() => rmSync(directory, { recursive: true, force: true }));
+// The suite runs in one process and shares one database: create these users only once this file's tests start, with addresses no other test uses.
+let users: Promise<unknown> | undefined;
+const ready = () => users ??= Promise.all([['owner', 'custom-owner@example.com'], ['other', 'custom-other@example.com']].map(([id, email]) => query('INSERT INTO users (id,email,name,password_hash,created_at) VALUES ($1,$2,$3,$4,$5)', [id, email, id, 'x', 0])));
+const november = 'Relatório de reuniões: 13/11 a 20/11/2026\nSex 13/11\n09h30–09h45 · Daily\n15h00–15h30 · Review\nSex 20/11\n09h30–09h45 · Daily\nTotal: 3';
+test('creating a calendar from a report stores its events and lists them only for the owner and the period', async () => {
+  await ready();
+  const created = await custom.createCustomCalendar('owner', { name: '  Agenda   LG ', color: 'rose', text: november });
+  assert.equal(created.imported, 3); assert.deepEqual(created.warnings, []);
+  const listed = await custom.listCustomCalendars('owner', '2026-11-01', '2026-11-20');
+  assert.equal(listed.accounts.length, 1); assert.equal(listed.accounts[0].name, 'Agenda LG'); assert.equal(listed.accounts[0].color, 'rose'); assert.equal(listed.accounts[0].writable, true);
+  assert.equal(listed.events.length, 2, 'the end of the range is exclusive');
+  assert.ok(listed.events.every(e => e.accountId === listed.accounts[0].id && e.id.startsWith(`${listed.accounts[0].id}::`)));
+  assert.deepEqual(await custom.listCustomCalendars('other', '2026-11-01', '2026-12-01'), { accounts: [], events: [] });
+  await assert.rejects(custom.updateCustomCalendar('other', created.id, { name: 'Roubada' }), /não encontrada/);
+  await custom.deleteCustomCalendar('owner', created.id);
+});
+test('name, color and report are validated before anything is written', async () => {
+  await ready();
+  await assert.rejects(custom.createCustomCalendar('owner', { name: ' ', color: 'rose', text: november }), /nome/);
+  await assert.rejects(custom.createCustomCalendar('owner', { name: 'X', color: 'purple', text: november }), /cores/);
+  await assert.rejects(custom.createCustomCalendar('owner', { name: 'X', color: 'teal', text: 'nada aqui' }), /Nenhuma reunião/);
+  assert.equal((await query('SELECT id FROM custom_calendars')).length, 0);
+});
+test('renaming and recoloring keep the events; deleting removes them', async () => {
+  await ready();
+  const { id } = await custom.createCustomCalendar('owner', { name: 'A', color: 'teal', text: november });
+  assert.deepEqual(await custom.updateCustomCalendar('owner', id, { name: 'B' }), { id, name: 'B', color: 'teal' });
+  assert.deepEqual(await custom.updateCustomCalendar('owner', id, { color: 'slate' }), { id, name: 'B', color: 'slate' });
+  assert.equal((await custom.listCustomCalendars('owner', '2026-11-01', '2026-12-01')).events.length, 3);
+  await custom.deleteCustomCalendar('owner', id);
+  assert.equal((await query('SELECT id FROM custom_events WHERE calendar_id=$1', [id])).length, 0);
+});
+test('reimporting replaces only the report period, edits included, and keeps events outside it', async () => {
+  await ready();
+  const { id } = await custom.createCustomCalendar('owner', { name: 'LG', color: 'rose', text: november });
+  const accountId = custom.customAccountId(id);
+  await custom.saveCustomEvent('owner', id, { id: '', accountId, title: 'Fora do período', date: '2026-11-25', start: '10:00', end: '11:00', location: '', description: '' });
+  const [daily] = (await custom.listCustomCalendars('owner', '2026-11-13', '2026-11-14')).events;
+  await custom.saveCustomEvent('owner', id, { ...daily, title: 'Daily editada', start: '09:00', end: '09:20' });
+  const result = await custom.reimportCustomCalendar('owner', id, { text: 'Relatório: 13/11 a 20/11/2026\nSex 13/11\n10h00–10h15 · Daily nova' });
+  assert.equal(result.replaced, 3); assert.equal(result.imported, 1);
+  const titles = (await custom.listCustomCalendars('owner', '2026-11-01', '2026-12-01')).events.map(e => e.title);
+  assert.deepEqual(titles, ['Daily nova', 'Fora do período']);
+  await assert.rejects(custom.reimportCustomCalendar('other', id, { text: november }), /não encontrada/);
+  await custom.deleteCustomCalendar('owner', id);
+});
+test('event edits stay inside the owner and the calendar the event belongs to', async () => {
+  await ready();
+  const a = await custom.createCustomCalendar('owner', { name: 'A', color: 'rose', text: november });
+  const b = await custom.createCustomCalendar('owner', { name: 'B', color: 'teal', text: november });
+  const [event] = (await custom.listCustomCalendars('owner', '2026-11-13', '2026-11-14')).events.filter(e => e.accountId === custom.customAccountId(a.id));
+  await assert.rejects(custom.saveCustomEvent('owner', b.id, { ...event, title: 'x' }), /inválido/);
+  await assert.rejects(custom.deleteCustomEvent('other', a.id, event.id), /não encontrada|não encontrado/);
+  await custom.deleteCustomEvent('owner', a.id, event.id);
+  await assert.rejects(custom.deleteCustomEvent('owner', a.id, event.id), /não encontrado/);
+  await custom.deleteCustomCalendar('owner', a.id); await custom.deleteCustomCalendar('owner', b.id);
+});
+test('the events endpoint creates, edits and deletes custom-calendar events without any provider', async () => {
+  await ready();
+  process.env.APP_URL = 'http://127.0.0.1:5173'; process.env.TOKEN_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString('base64');
+  const { authAction } = await import('../lib/server/auth.ts'); const { eventAction } = await import('../lib/server/event-actions.ts');
+  const post = (url: string, payload: unknown, cookie = '', method = 'POST') => new Request(`${process.env.APP_URL}${url}`, { method, headers: { origin: process.env.APP_URL!, 'Content-Type': 'application/json', cookie }, body: JSON.stringify(payload) });
+  const registered = await authAction(post('/api/auth/register', { email: 'events@example.com', name: 'Eventos', password: 'a-strong-test-password' }), 'register');
+  const cookie = registered.headers.get('set-cookie')!.split(';')[0];
+  const [{ id: userId }] = await query<{ id: string }>('SELECT id FROM users WHERE email=$1', ['events@example.com']);
+  const { id } = await custom.createCustomCalendar(userId, { name: 'LG', color: 'olive', text: november }); const accountId = custom.customAccountId(id);
+  const event = { accountId, title: 'Nova', date: '2026-11-16', start: '10:00', end: '11:00', location: 'Sala 2', description: '' };
+  assert.equal((await eventAction(post('/api/events', event, cookie))).status, 201);
+  const created = (await custom.listCustomCalendars(userId, '2026-11-16', '2026-11-17')).events[0]; assert.equal(created.location, 'Sala 2');
+  assert.equal((await eventAction(post('/api/events', { ...event, id: created.id, title: 'Editada', end: '09:00' }, cookie, 'PATCH'))).status, 400);
+  assert.equal((await eventAction(post('/api/events', { ...event, id: created.id, title: 'Editada' }, cookie, 'PATCH'))).status, 200);
+  assert.equal((await custom.listCustomCalendars(userId, '2026-11-16', '2026-11-17')).events[0].title, 'Editada');
+  const foreign = await custom.createCustomCalendar('other', { name: 'Alheia', color: 'rose', text: november });
+  assert.equal((await eventAction(post('/api/events', { ...event, accountId: custom.customAccountId(foreign.id) }, cookie))).status, 404);
+  assert.equal((await eventAction(post('/api/events', { id: created.id, accountId }, cookie, 'DELETE'))).status, 200);
+  assert.equal((await custom.listCustomCalendars(userId, '2026-11-16', '2026-11-17')).events.length, 0);
+});
